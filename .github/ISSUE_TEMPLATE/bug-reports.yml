@@ -1,0 +1,65 @@
+name: Bug Report
+description: Report a crash, visual glitch, or performance issue with Cinder.
+title: "[Bug]: "
+labels: ["bug", "unconfirmed"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting an issue! Please fill out the fields below so we can fix it as fast as possible.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of the Issue
+      description: What went wrong? What did you expect to happen?
+      placeholder: "When I placed 50 campfires, the game crashed..."
+    validations:
+      required: true
+
+  - type: input
+    id: mc_version
+    attributes:
+      label: Minecraft Version
+      description: Which version of Minecraft are you playing on?
+      placeholder: "e.g., 26.3"
+    validations:
+      required: true
+
+  - type: input
+    id: cinder_version
+    attributes:
+      label: Cinder Version
+      description: Which version of Cinder is installed?
+      placeholder: "e.g., 1.0.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: mods
+    attributes:
+      label: Other Installed Mods
+      description: Are you using Sodium, Iris, Lithium, or any other optimization/rendering mods?
+      placeholder: "Sodium, Fabric API..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Crash Report / Logs
+      description: |
+        Please paste the link to your `latest.log` or `crash-report`.
+        **Do not paste raw log text here.** Use [mclo.gs](https://mclo.gs/) or [Pastebin](https://pastebin.com/).
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Troubleshooting Steps
+      options:
+        - label: I have verified that this issue occurs with ONLY Cinder and Fabric API installed.
+          required: false
+        - label: I have checked for existing open issues to ensure this is not a duplicate.
+          required: true

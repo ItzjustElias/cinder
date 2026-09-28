@@ -1,0 +1,33 @@
+{
+	"schemaVersion": 1,
+	"id": "cinder",
+	"version": "${version}",
+	"name": "cinder",
+	"description": "A particle engine optimization mod!",
+	"authors": [
+		"Elias"
+	],
+	"contact": {
+		"sources": "https://github.com/ItzjustElias"
+	},
+	"license": "MIT",
+	"icon": "assets/cinder/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"be.eliasb.Cinder"
+		],
+		"modmenu": [
+			"be.eliasb.integration.CinderModMenuApiImpl"
+		]
+	},
+	"mixins": [
+		"cinder.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

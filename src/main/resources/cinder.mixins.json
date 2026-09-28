@@ -1,0 +1,19 @@
+{
+	"required": true,
+	"package": "be.eliasb.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"SingleQuadParticleAccessor",
+		"ParticleEngineMixin",
+		"ParticleMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	},
+	"client": [
+		"SingleQuadParticleAccessor"
+	]
+}
