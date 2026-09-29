@@ -12,22 +12,22 @@ public final class CinderConfigScreen {
   private CinderConfigScreen() {}
 
   private static Option<Boolean> bool(
-      String name,
-      String desc,
+      String key,
       boolean def,
       java.util.function.Supplier<Boolean> getter,
       java.util.function.Consumer<Boolean> setter) {
     return Option.<Boolean>createBuilder()
-        .name(Component.literal(name))
-        .description(dev.isxander.yacl3.api.OptionDescription.of(Component.literal(desc)))
+        .name(Component.translatable("cinder.option." + key + ".name"))
+        .description(
+            dev.isxander.yacl3.api.OptionDescription.of(
+                Component.translatable("cinder.option." + key + ".desc")))
         .binding(def, getter, setter)
         .controller(TickBoxControllerBuilder::create)
         .build();
   }
 
   private static Option<Integer> slider(
-      String name,
-      String desc,
+      String key,
       int def,
       int min,
       int max,
@@ -35,8 +35,10 @@ public final class CinderConfigScreen {
       java.util.function.Supplier<Integer> getter,
       java.util.function.Consumer<Integer> setter) {
     return Option.<Integer>createBuilder()
-        .name(Component.literal(name))
-        .description(dev.isxander.yacl3.api.OptionDescription.of(Component.literal(desc)))
+        .name(Component.translatable("cinder.option." + key + ".name"))
+        .description(
+            dev.isxander.yacl3.api.OptionDescription.of(
+                Component.translatable("cinder.option." + key + ".desc")))
         .binding(def, getter, setter)
         .controller(o -> IntegerSliderControllerBuilder.create(o).range(min, max).step(step))
         .build();
@@ -46,21 +48,19 @@ public final class CinderConfigScreen {
     var c = CinderConfig.INSTANCE;
 
     return YetAnotherConfigLib.createBuilder()
-        .title(Component.literal("Cinder"))
+        .title(Component.translatable("cinder.config.title"))
         .category(
             ConfigCategory.createBuilder()
-                .name(Component.literal("Culling"))
+                .name(Component.translatable("cinder.category.culling"))
                 .option(
                     bool(
-                        "Frustum (view cone) culling",
-                        "Skip spawning particles outside your view.",
+                        "frustum",
                         true,
                         () -> c.enableFrustumCulling,
                         v -> c.enableFrustumCulling = v))
                 .option(
                     slider(
-                        "Frustum margin (degrees)",
-                        "Extra angle around the view cone.",
+                        "frustumMargin",
                         20,
                         0,
                         90,
@@ -69,15 +69,13 @@ public final class CinderConfigScreen {
                         v -> c.frustumMarginDegrees = v))
                 .option(
                     bool(
-                        "Occlusion culling",
-                        "Skip particles hidden behind solid blocks.",
+                        "occlusion",
                         true,
                         () -> c.enableOcclusionCulling,
                         v -> c.enableOcclusionCulling = v))
                 .option(
                     slider(
-                        "Occlusion min distance",
-                        "Never occlusion-test closer than this (blocks).",
+                        "occlusionMinDistance",
                         6,
                         2,
                         64,
@@ -86,8 +84,7 @@ public final class CinderConfigScreen {
                         v -> c.occlusionMinDistance = v))
                 .option(
                     slider(
-                        "Max particle distance",
-                        "Hard cutoff in blocks. Ignored if relative distance is on.",
+                        "maxDistance",
                         32,
                         8,
                         256,
@@ -96,15 +93,13 @@ public final class CinderConfigScreen {
                         v -> c.maxParticleDistance = v))
                 .option(
                     bool(
-                        "Scale distance with render distance",
-                        "Use a percentage of your video-settings render distance instead of a fixed block count.",
+                        "relativeDistance",
                         false,
                         () -> c.useRelativeDistance,
                         v -> c.useRelativeDistance = v))
                 .option(
                     slider(
-                        "Relative distance (%)",
-                        "Percent of render distance to use when the option above is on. 100 = exactly your render distance edge.",
+                        "relativeDistancePercent",
                         100,
                         10,
                         400,
@@ -113,8 +108,7 @@ public final class CinderConfigScreen {
                         v -> c.relativeDistancePercent = v))
                 .option(
                     slider(
-                        "Max particles per tick",
-                        "Global spawn cap per tick.",
+                        "maxPerTick",
                         1500,
                         50,
                         20000,
@@ -124,48 +118,33 @@ public final class CinderConfigScreen {
                 .build())
         .category(
             ConfigCategory.createBuilder()
-                .name(Component.literal("Throttling & Visuals"))
+                .name(Component.translatable("cinder.category.throttling_visuals"))
                 .option(
                     bool(
-                        "Density throttling",
-                        "Randomly drop more distant particles.",
+                        "density",
                         true,
                         () -> c.enableDensityThrottling,
                         v -> c.enableDensityThrottling = v))
                 .option(
                     slider(
-                        "Max density drop (%)",
-                        "Drop chance at maximum distance.",
+                        "densityDrop",
                         75,
                         0,
                         100,
                         1,
                         () -> c.maxDensityDropPercent,
                         v -> c.maxDensityDropPercent = v))
-                .option(
-                    bool(
-                        "Optimize physics",
-                        "Far particles skip block collision.",
-                        true,
-                        () -> c.optimizePhysics,
-                        v -> c.optimizePhysics = v))
+                .option(bool("physics", true, () -> c.optimizePhysics, v -> c.optimizePhysics = v))
                 .option(
                     slider(
-                        "Physics disable distance",
-                        "Blocks from camera.",
+                        "physicsDistance",
                         16,
                         4,
                         128,
                         1,
                         () -> c.physicsDisableDistance,
                         v -> c.physicsDisableDistance = v))
-                .option(
-                    bool(
-                        "Smooth fading",
-                        "Fade particles out over their last 10 ticks.",
-                        true,
-                        () -> c.smoothFading,
-                        v -> c.smoothFading = v))
+                .option(bool("fading", true, () -> c.smoothFading, v -> c.smoothFading = v))
                 .build())
         .save(CinderConfig::save)
         .build()
