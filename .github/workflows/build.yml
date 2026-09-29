@@ -8,13 +8,6 @@ on:
       - 'build.gradle'
       - 'gradle.properties'
       - 'settings.gradle'
-  pull_request:
-    branches: [ "main", "master" ]
-    paths:
-      - 'src/**'
-      - 'build.gradle'
-      - 'gradle.properties'
-      - 'settings.gradle'
 
 jobs:
   build:
