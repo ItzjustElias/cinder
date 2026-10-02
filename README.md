@@ -53,6 +53,7 @@ A couple of these are worth explaining:
 
 - **`particleTypeOverrides`** 🎯: this is where you list specific particle types you want to turn down or off. The number is a percentage from 0.0 (completely off) to 1.0 (normal, no change). So `0.3` means "only let 30% of these actually spawn."
 - **`useRelativeDistance`** 📐: turn this on if you want particle distance to automatically follow your render distance setting instead of using a fixed number.
+- **`maxOcclusionRaycastsPerTick`** 🧮: a behind-the-scenes safety limit, most people will never need to touch this. It caps how many "is this particle hidden behind a wall" checks happen in a single tick, so a really dense scene doesn't spike your CPU doing nothing but wall checks. If you ever hit the limit, Cinder just lets a few extra particles through rather than risk hiding ones it never actually checked. Left out of the in-game settings screen on purpose, since there's nothing visual to preview here, it's purely a safety valve.
 
 If you have Mod Menu and YACL installed, most of these (except the particle type list, since that one doesn't really fit a slider or toggle) show up in a nice in-game settings screen too. 🖱️
 
