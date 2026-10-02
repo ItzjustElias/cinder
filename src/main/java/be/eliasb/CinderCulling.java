@@ -1,10 +1,13 @@
 package be.eliasb;
 
 import be.eliasb.config.CinderConfig;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ClipContext;
@@ -16,18 +19,30 @@ public final class CinderCulling {
   private static final double FRUSTUM_MIN_DISTANCE = 3.0;
   private static final double DENSITY_START = 8.0;
 
+  private static final Map<ParticleType<?>, String> TYPE_ID_CACHE = new IdentityHashMap<>();
+
   private CinderCulling() {}
 
   public static boolean shouldCull(ParticleOptions options, double x, double y, double z) {
     var cfg = CinderConfig.INSTANCE;
-    if (!cfg.particleTypeOverrides.isEmpty()) {
-      float chance = cfg.getSpawnChance(particleTypeId(options));
+
+    String typeId = null;
+    if (!cfg.particleTypeOverrides.isEmpty() || !cfg.particleTypeNeverCull.isEmpty()) {
+      typeId = particleTypeId(options.getType());
+    }
+
+    if (typeId != null && !cfg.particleTypeOverrides.isEmpty()) {
+      float chance = cfg.getSpawnChance(typeId);
       if (chance <= 0.0f) {
         return true;
       }
       if (chance < 1.0f && ThreadLocalRandom.current().nextFloat() >= chance) {
         return true;
       }
+    }
+
+    if (typeId != null && cfg.particleTypeNeverCull.contains(typeId)) {
+      return false;
     }
 
     if (!CinderState.active) {
@@ -49,9 +64,9 @@ public final class CinderCulling {
     }
     double dist = Math.sqrt(distSq);
 
+    // 3. View-cone ("frustum") culling
     if (cfg.enableFrustumCulling && CinderState.frustumUsable && dist > FRUSTUM_MIN_DISTANCE) {
-      double dot =
-          (dx * CinderState.lookX + dy * CinderState.lookY + dz * CinderState.lookZ) / dist;
+      double dot = (dx * CinderState.lookX + dy * CinderState.lookY + dz * CinderState.lookZ) / dist;
       if (dot < CinderState.cosFrustum) {
         return true;
       }
@@ -73,9 +88,13 @@ public final class CinderCulling {
     return false;
   }
 
-  private static String particleTypeId(ParticleOptions options) {
-    var key = BuiltInRegistries.PARTICLE_TYPE.getKey(options.getType());
-    return key == null ? "unknown:unknown" : key.toString();
+  private static String particleTypeId(ParticleType<?> type) {
+    return TYPE_ID_CACHE.computeIfAbsent(
+            type,
+            t -> {
+              var key = BuiltInRegistries.PARTICLE_TYPE.getKey(t);
+              return key == null ? "unknown:unknown" : key.toString();
+            });
   }
 
   private static boolean isOccluded(double x, double y, double z) {
@@ -88,6 +107,13 @@ public final class CinderCulling {
     if (cached >= 0) {
       return cached == 1;
     }
+
+    // Per-tick raycast budget check: fail open if budget exhausted
+    var cfg = CinderConfig.INSTANCE;
+    if (CinderState.occlusionRaycastsThisTick >= cfg.maxOcclusionRaycastsPerTick) {
+      return false;
+    }
+    CinderState.occlusionRaycastsThisTick++;
 
     boolean occluded = raycast(x, y, z, bx, by, bz);
     if (CinderState.cacheHasRoom()) {
@@ -103,12 +129,12 @@ public final class CinderCulling {
     }
 
     var context =
-        new ClipContext(
-            CinderState.eye,
-            new Vec3(x, y, z),
-            ClipContext.Block.VISUAL,
-            ClipContext.Fluid.NONE,
-            CinderState.viewer);
+            new ClipContext(
+                    CinderState.eye,
+                    new Vec3(x, y, z),
+                    ClipContext.Block.VISUAL,
+                    ClipContext.Fluid.NONE,
+                    CinderState.viewer);
 
     BlockHitResult hit = level.clip(context);
     if (hit.getType() != HitResult.Type.BLOCK) {

@@ -1,12 +1,15 @@
 package be.eliasb.config;
 
+import be.eliasb.Cinder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import net.fabricmc.loader.api.FabricLoader;
 
 public final class CinderConfig {
@@ -16,6 +19,7 @@ public final class CinderConfig {
   private static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("cinder.json");
   private static final Object IO_LOCK = new Object();
 
+  // --- Core feature options ---
   public boolean enableFrustumCulling = true;
   public boolean enableOcclusionCulling = true;
   public int maxParticleDistance = 32;
@@ -25,7 +29,6 @@ public final class CinderConfig {
   public int maxDensityDropPercent = 75;
   public boolean optimizePhysics = true;
   public boolean smoothFading = true;
-
   public boolean cacheLightPerTick = true;
 
   public int frustumMarginDegrees = 20;
@@ -33,9 +36,15 @@ public final class CinderConfig {
   public int occlusionMinDistance = 6;
 
   public boolean useRelativeDistance = false;
-
   public int relativeDistancePercent = 100;
+
   public Map<String, Float> particleTypeOverrides = new LinkedHashMap<>();
+
+  // --- Raycast budget ---
+  public int maxOcclusionRaycastsPerTick = 200;
+
+  // --- Never-cull protection list ---
+  public Set<String> particleTypeNeverCull = new LinkedHashSet<>();
 
   private CinderConfig() {}
 
@@ -49,7 +58,7 @@ public final class CinderConfig {
             INSTANCE.copyFrom(data);
           }
         } catch (IOException | RuntimeException e) {
-          System.err.println("[Cinder] Failed to read config, using defaults: " + e);
+          Cinder.LOGGER.warn("[Cinder] Failed to read config, using defaults", e);
         }
       }
       INSTANCE.sanitize();
@@ -61,15 +70,15 @@ public final class CinderConfig {
     INSTANCE.sanitize();
     final String json = GSON.toJson(INSTANCE);
     Thread.startVirtualThread(
-        () -> {
-          synchronized (IO_LOCK) {
-            try {
-              Files.writeString(FILE, json);
-            } catch (IOException e) {
-              System.err.println("[Cinder] Failed to save config: " + e);
-            }
-          }
-        });
+            () -> {
+              synchronized (IO_LOCK) {
+                try {
+                  Files.writeString(FILE, json);
+                } catch (IOException e) {
+                  Cinder.LOGGER.warn("[Cinder] Failed to save config", e);
+                }
+              }
+            });
   }
 
   public float getSpawnChance(String particleTypeId) {
@@ -92,8 +101,12 @@ public final class CinderConfig {
     cacheLightPerTick = o.cacheLightPerTick;
     useRelativeDistance = o.useRelativeDistance;
     relativeDistancePercent = o.relativeDistancePercent;
+    maxOcclusionRaycastsPerTick = o.maxOcclusionRaycastsPerTick;
     if (o.particleTypeOverrides != null) {
       particleTypeOverrides = new LinkedHashMap<>(o.particleTypeOverrides);
+    }
+    if (o.particleTypeNeverCull != null) {
+      particleTypeNeverCull = new LinkedHashSet<>(o.particleTypeNeverCull);
     }
   }
 
@@ -105,15 +118,20 @@ public final class CinderConfig {
     physicsDisableDistance = clamp(physicsDisableDistance, 4, 128);
     occlusionMinDistance = clamp(occlusionMinDistance, 2, 64);
     relativeDistancePercent = clamp(relativeDistancePercent, 10, 400);
+    maxOcclusionRaycastsPerTick = clamp(maxOcclusionRaycastsPerTick, 10, 5000);
 
     if (particleTypeOverrides == null) {
       particleTypeOverrides = new LinkedHashMap<>();
     } else {
       particleTypeOverrides.replaceAll(
-          (id, chance) -> {
-            float c = (chance == null || chance.isNaN()) ? 1.0f : chance;
-            return Math.max(0.0f, Math.min(1.0f, c));
-          });
+              (id, chance) -> {
+                float c = (chance == null || chance.isNaN()) ? 1.0f : chance;
+                return Math.max(0.0f, Math.min(1.0f, c));
+              });
+    }
+
+    if (particleTypeNeverCull == null) {
+      particleTypeNeverCull = new LinkedHashSet<>();
     }
   }
 

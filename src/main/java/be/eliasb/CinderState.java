@@ -21,7 +21,7 @@ public final class CinderState {
   public static Entity viewer;
 
   public static int spawnedThisTick;
-  public static int currentTick;
+  public static int occlusionRaycastsThisTick;
 
   public static double effectiveMaxDistance = 32.0;
   public static final Long2ByteOpenHashMap OCCLUSION = new Long2ByteOpenHashMap();
@@ -33,8 +33,9 @@ public final class CinderState {
   private CinderState() {}
 
   public static void beginTick(Minecraft mc) {
-    currentTick++;
     spawnedThisTick = 0;
+    occlusionRaycastsThisTick = 0;
+
     if (!OCCLUSION.isEmpty()) {
       OCCLUSION.clear();
     }
@@ -64,8 +65,6 @@ public final class CinderState {
     lookY = look.y;
     lookZ = look.z;
 
-    // In third person the camera looks along a different axis than the entity, so the cone would be
-    // wrong.
     frustumUsable = mc.options.getCameraType().isFirstPerson();
 
     double fovDeg = mc.options.fov().get();
