@@ -66,7 +66,8 @@ public final class CinderCulling {
 
     // 3. View-cone ("frustum") culling
     if (cfg.enableFrustumCulling && CinderState.frustumUsable && dist > FRUSTUM_MIN_DISTANCE) {
-      double dot = (dx * CinderState.lookX + dy * CinderState.lookY + dz * CinderState.lookZ) / dist;
+      double dot =
+          (dx * CinderState.lookX + dy * CinderState.lookY + dz * CinderState.lookZ) / dist;
       if (dot < CinderState.cosFrustum) {
         return true;
       }
@@ -90,11 +91,11 @@ public final class CinderCulling {
 
   private static String particleTypeId(ParticleType<?> type) {
     return TYPE_ID_CACHE.computeIfAbsent(
-            type,
-            t -> {
-              var key = BuiltInRegistries.PARTICLE_TYPE.getKey(t);
-              return key == null ? "unknown:unknown" : key.toString();
-            });
+        type,
+        t -> {
+          var key = BuiltInRegistries.PARTICLE_TYPE.getKey(t);
+          return key == null ? "unknown:unknown" : key.toString();
+        });
   }
 
   private static boolean isOccluded(double x, double y, double z) {
@@ -129,12 +130,12 @@ public final class CinderCulling {
     }
 
     var context =
-            new ClipContext(
-                    CinderState.eye,
-                    new Vec3(x, y, z),
-                    ClipContext.Block.VISUAL,
-                    ClipContext.Fluid.NONE,
-                    CinderState.viewer);
+        new ClipContext(
+            CinderState.eye,
+            new Vec3(x, y, z),
+            ClipContext.Block.VISUAL,
+            ClipContext.Fluid.NONE,
+            CinderState.viewer);
 
     BlockHitResult hit = level.clip(context);
     if (hit.getType() != HitResult.Type.BLOCK) {

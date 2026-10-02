@@ -67,15 +67,15 @@ public final class CinderConfig {
     INSTANCE.sanitize();
     final String json = GSON.toJson(INSTANCE);
     Thread.startVirtualThread(
-            () -> {
-              synchronized (IO_LOCK) {
-                try {
-                  Files.writeString(FILE, json);
-                } catch (IOException e) {
-                  Cinder.LOGGER.warn("[Cinder] Failed to save config", e);
-                }
-              }
-            });
+        () -> {
+          synchronized (IO_LOCK) {
+            try {
+              Files.writeString(FILE, json);
+            } catch (IOException e) {
+              Cinder.LOGGER.warn("[Cinder] Failed to save config", e);
+            }
+          }
+        });
   }
 
   public float getSpawnChance(String particleTypeId) {
@@ -121,10 +121,10 @@ public final class CinderConfig {
       particleTypeOverrides = new LinkedHashMap<>();
     } else {
       particleTypeOverrides.replaceAll(
-              (id, chance) -> {
-                float c = (chance == null || chance.isNaN()) ? 1.0f : chance;
-                return Math.max(0.0f, Math.min(1.0f, c));
-              });
+          (id, chance) -> {
+            float c = (chance == null || chance.isNaN()) ? 1.0f : chance;
+            return Math.max(0.0f, Math.min(1.0f, c));
+          });
     }
 
     if (particleTypeNeverCull == null) {
