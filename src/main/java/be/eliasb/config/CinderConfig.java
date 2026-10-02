@@ -19,7 +19,6 @@ public final class CinderConfig {
   private static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("cinder.json");
   private static final Object IO_LOCK = new Object();
 
-  // --- Core feature options ---
   public boolean enableFrustumCulling = true;
   public boolean enableOcclusionCulling = true;
   public int maxParticleDistance = 32;
@@ -40,10 +39,8 @@ public final class CinderConfig {
 
   public Map<String, Float> particleTypeOverrides = new LinkedHashMap<>();
 
-  // --- Raycast budget ---
   public int maxOcclusionRaycastsPerTick = 200;
 
-  // --- Never-cull protection list ---
   public Set<String> particleTypeNeverCull = new LinkedHashSet<>();
 
   private CinderConfig() {}
