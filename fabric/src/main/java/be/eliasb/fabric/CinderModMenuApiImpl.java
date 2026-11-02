@@ -1,10 +1,10 @@
-package be.eliasb.integration;
+package be.eliasb.fabric;
 
 import be.eliasb.config.CinderConfigScreen;
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 
-public class CinderModMenuApiImpl implements ModMenuApi {
+public final class CinderModMenuApiImpl implements ModMenuApi {
   @Override
   public ConfigScreenFactory<?> getModConfigScreenFactory() {
     return CinderConfigScreen::createScreen;

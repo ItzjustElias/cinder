@@ -1,0 +1,64 @@
+plugins {
+	id 'java-library'
+	id 'net.fabricmc.fabric-loom'
+}
+
+apply from: rootProject.file('gradle/conventions.gradle')
+
+base {
+	archivesName = "${project.mod_id}-fabric"
+}
+
+configurations {
+	commonJava { canBeResolved = true }
+	commonResources { canBeResolved = true }
+}
+
+dependencies {
+	compileOnly project(':common')
+	commonJava project(path: ':common', configuration: 'commonJava')
+	commonResources project(path: ':common', configuration: 'commonResources')
+}
+
+tasks.named('compileJava', JavaCompile) {
+	dependsOn configurations.commonJava
+	source configurations.commonJava
+}
+
+tasks.named('processResources', ProcessResources) {
+	dependsOn configurations.commonResources
+	from configurations.commonResources
+}
+
+tasks.named('sourcesJar', Jar) {
+	dependsOn configurations.commonJava, configurations.commonResources
+	from configurations.commonJava
+	from configurations.commonResources
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	implementation "dev.isxander:yet-another-config-lib:${project.yacl_version}-fabric"
+	implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+}
+
+tasks.named('processResources', ProcessResources) {
+	def props = [
+		mod_id             : project.mod_id,
+		mod_name           : project.mod_name,
+		mod_version        : project.mod_version,
+		mod_author         : project.mod_author,
+		mod_license        : project.mod_license,
+		mod_description    : project.mod_description,
+		mod_sources_url    : project.mod_sources_url,
+		fabric_loader_version : project.fabric_loader_version,
+		fabric_minecraft_range: project.fabric_minecraft_range,
+		java_version       : project.java_version,
+	]
+	inputs.properties props
+	filesMatching('fabric.mod.json') {
+		expand props
+	}
+}

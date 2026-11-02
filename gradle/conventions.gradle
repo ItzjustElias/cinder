@@ -1,0 +1,26 @@
+group = project.mod_group
+version = "${project.mod_version}+${project.minecraft_version}"
+
+repositories {
+	mavenCentral()
+	maven { name = 'IsXander'; url = 'https://maven.isxander.dev/releases' }
+	maven { name = 'TerraformersMC'; url = 'https://maven.terraformersmc.com/' }
+	maven { name = 'SpongePowered'; url = 'https://repo.spongepowered.org/repository/maven-public/' }
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.release = Integer.parseInt(project.java_version)
+	options.encoding = 'UTF-8'
+}
+
+java {
+	withSourcesJar()
+}
+
+String modId = project.mod_id
+
+tasks.named('jar') {
+	from(rootProject.file('LICENSE')) {
+		rename { "${it}_${modId}" }
+	}
+}

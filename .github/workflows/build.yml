@@ -1,21 +1,21 @@
-name: Build Cinder
+name: Build
 
 on:
   push:
-    branches: [ "main", "master" ]
-    paths:
-      - 'src/**'
-      - 'build.gradle'
-      - 'gradle.properties'
-      - 'settings.gradle'
+    branches: [ "master", "main" ]
+  pull_request:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    name: Build and Verify
+    name: Format, test, build both loaders
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v6
 
       - name: Set up Java 25
@@ -24,21 +24,26 @@ jobs:
           java-version: '25'
           distribution: 'microsoft'
 
-      - name: Setup Gradle Cache
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Make Gradle Wrapper Executable
+      - name: Make wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Verify Formatting (Spotless)
-        run: ./gradlew spotlessCheck
+      - name: Check formatting, run tests, build Fabric and NeoForge
+        run: ./gradlew buildAll collectJars --stacktrace
 
-      - name: Build Mod
-        run: ./gradlew build
-
-      - name: Upload Build Artifacts
+      - name: Upload jars
         uses: actions/upload-artifact@v7
         with:
-          name: Cinder-Build-Artifacts
-          path: build/libs/
+          name: Cinder-jars
+          path: build/dist/*.jar
           retention-days: 14
+
+      - name: Upload test report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-report
+          path: common/build/reports/tests/
+          retention-days: 7

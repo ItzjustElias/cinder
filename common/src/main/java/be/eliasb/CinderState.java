@@ -7,7 +7,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
 public final class CinderState {
-  private static final double ASSUMED_ASPECT = 21.0 / 9.0;
   private static final int OCCLUSION_CACHE_LIMIT = 8192;
 
   public static boolean active;
@@ -41,12 +40,12 @@ public final class CinderState {
     }
 
     var cfg = CinderConfig.INSTANCE;
-    if (cfg.useRelativeDistance) {
-      int renderDistanceChunks = mc.options.renderDistance().get();
-      effectiveMaxDistance = renderDistanceChunks * 16.0 * (cfg.relativeDistancePercent / 100.0);
-    } else {
-      effectiveMaxDistance = cfg.maxParticleDistance;
-    }
+    effectiveMaxDistance =
+        CinderMath.effectiveMaxDistance(
+            cfg.useRelativeDistance,
+            mc.options.renderDistance().get(),
+            cfg.relativeDistancePercent,
+            cfg.maxParticleDistance);
 
     Entity cam = mc.getCameraEntity();
     if (mc.level == null || cam == null) {
@@ -67,11 +66,7 @@ public final class CinderState {
 
     frustumUsable = mc.options.getCameraType().isFirstPerson();
 
-    double fovDeg = mc.options.fov().get();
-    double halfV = Math.toRadians(fovDeg * 0.5);
-    double halfDiag = Math.atan(Math.tan(halfV) * Math.sqrt(1.0 + ASSUMED_ASPECT * ASSUMED_ASPECT));
-    double total = halfDiag + Math.toRadians(CinderConfig.INSTANCE.frustumMarginDegrees);
-    cosFrustum = total >= Math.PI ? -1.0 : Math.cos(total);
+    cosFrustum = CinderMath.frustumCosine(mc.options.fov().get(), cfg.frustumMarginDegrees);
 
     active = true;
   }

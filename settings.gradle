@@ -1,17 +1,19 @@
 pluginManagement {
 	repositories {
-		maven {
-			name = 'Fabric'
-			url = 'https://maven.fabricmc.net/'
-		}
-		maven {
-			name = 'SpongePowered'
-			url = 'https://repo.spongepowered.org/repository/maven-public/'
-		}
+		maven { name = 'Fabric'; url = 'https://maven.fabricmc.net/' }
+		maven { name = 'NeoForged'; url = 'https://maven.neoforged.net/releases' }
+		maven { name = 'SpongePowered'; url = 'https://repo.spongepowered.org/repository/maven-public/' }
 		mavenCentral()
 		gradlePluginPortal()
 	}
+	// Plugin versions live in gradle.properties so every module uses the same one.
+	plugins {
+		id 'net.fabricmc.fabric-loom' version "${loom_version}"
+		id 'net.neoforged.moddev' version "${moddev_version}"
+		id 'com.diffplug.spotless' version "${spotless_version}"
+	}
 }
 
-// Should match your modid
 rootProject.name = 'cinder'
+
+include 'common', 'fabric', 'neoforge'
