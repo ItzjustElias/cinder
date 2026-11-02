@@ -1,4 +1,3 @@
-# 🔥 Cinder
 <div align="center">
 <img width="600" height="200" src="https://i.imgur.com/FY9ARDt.png" img>
 </div>
