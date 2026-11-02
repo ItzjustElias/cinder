@@ -22,7 +22,7 @@ jobs:
           distribution: 'microsoft'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Make wrapper executable
         run: chmod +x ./gradlew
