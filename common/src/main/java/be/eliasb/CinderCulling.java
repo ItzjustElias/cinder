@@ -64,19 +64,25 @@ public final class CinderCulling {
     }
     double dist = Math.sqrt(distSq);
 
-    // 3. View-cone ("frustum") culling
-    if (cfg.enableFrustumCulling && CinderState.frustumUsable && dist > FRUSTUM_MIN_DISTANCE) {
-      double dot =
-          (dx * CinderState.lookX + dy * CinderState.lookY + dz * CinderState.lookZ) / dist;
-      if (dot < CinderState.cosFrustum) {
-        return true;
-      }
+    if (cfg.enableFrustumCulling
+        && CinderState.frustumUsable
+        && dist > FRUSTUM_MIN_DISTANCE
+        && CinderMath.outsideCone(
+            dx,
+            dy,
+            dz,
+            dist,
+            CinderState.lookX,
+            CinderState.lookY,
+            CinderState.lookZ,
+            CinderState.cosFrustum)) {
+      return true;
     }
 
-    if (cfg.enableDensityThrottling && dist > DENSITY_START && maxDist > DENSITY_START) {
-      double factor = (dist - DENSITY_START) / (maxDist - DENSITY_START);
-      double dropChance = factor * (cfg.maxDensityDropPercent / 100.0);
-      if (ThreadLocalRandom.current().nextDouble() < dropChance) {
+    if (cfg.enableDensityThrottling) {
+      double dropChance =
+          CinderMath.densityDropChance(dist, maxDist, DENSITY_START, cfg.maxDensityDropPercent);
+      if (dropChance > 0.0 && ThreadLocalRandom.current().nextDouble() < dropChance) {
         return true;
       }
     }

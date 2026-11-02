@@ -1,0 +1,53 @@
+plugins {
+	id 'java-library'
+	id 'net.neoforged.moddev'
+}
+
+apply from: rootProject.file('gradle/conventions.gradle')
+
+base {
+	archivesName = "${project.mod_id}-common"
+}
+
+neoForge {
+	neoFormVersion = project.neoform_version
+}
+
+dependencies {
+	compileOnly "org.spongepowered:mixin:${project.mixin_version}"
+
+	compileOnly("dev.isxander:yet-another-config-lib:${project.yacl_version}-fabric") {
+		transitive = false
+	}
+
+	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	testImplementation "com.google.code.gson:gson:${project.gson_version}"
+	testImplementation "org.slf4j:slf4j-api:${project.slf4j_version}"
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	testLogging {
+		events 'passed', 'skipped', 'failed'
+		exceptionFormat = 'full'
+	}
+}
+
+configurations {
+	commonJava {
+		canBeResolved = false
+		canBeConsumed = true
+	}
+	commonResources {
+		canBeResolved = false
+		canBeConsumed = true
+	}
+}
+
+artifacts {
+	commonJava sourceSets.main.java.sourceDirectories.singleFile
+	commonResources sourceSets.main.resources.sourceDirectories.singleFile
+}

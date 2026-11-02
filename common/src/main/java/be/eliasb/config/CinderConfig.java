@@ -10,13 +10,12 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import net.fabricmc.loader.api.FabricLoader;
 
 public final class CinderConfig {
   public static final CinderConfig INSTANCE = new CinderConfig();
 
   private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-  private static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("cinder.json");
+  private static final String FILE_NAME = "cinder.json";
   private static final Object IO_LOCK = new Object();
 
   public boolean enableFrustumCulling = true;
@@ -46,10 +45,14 @@ public final class CinderConfig {
   private CinderConfig() {}
 
   public static void load() {
+    load(configFile());
+  }
+
+  static void load(Path file) {
     synchronized (IO_LOCK) {
-      if (Files.exists(FILE)) {
+      if (Files.exists(file)) {
         try {
-          var json = Files.readString(FILE);
+          var json = Files.readString(file);
           var data = GSON.fromJson(json, CinderConfig.class);
           if (data != null) {
             INSTANCE.copyFrom(data);
@@ -60,22 +63,41 @@ public final class CinderConfig {
       }
       INSTANCE.sanitize();
     }
-    save();
+    saveNow(file);
   }
 
+  // on bg thread
   public static void save() {
+    final Path file = configFile();
     INSTANCE.sanitize();
     final String json = GSON.toJson(INSTANCE);
-    Thread.startVirtualThread(
-        () -> {
-          synchronized (IO_LOCK) {
-            try {
-              Files.writeString(FILE, json);
-            } catch (IOException e) {
-              Cinder.LOGGER.warn("[Cinder] Failed to save config", e);
-            }
-          }
-        });
+    Thread.startVirtualThread(() -> write(file, json));
+  }
+
+  static void saveNow(Path file) {
+    INSTANCE.sanitize();
+    write(file, GSON.toJson(INSTANCE));
+  }
+
+  // used by tests
+  static void reset() {
+    synchronized (IO_LOCK) {
+      INSTANCE.copyFrom(new CinderConfig());
+    }
+  }
+
+  private static Path configFile() {
+    return Cinder.platform().configDir().resolve(FILE_NAME);
+  }
+
+  private static void write(Path file, String json) {
+    synchronized (IO_LOCK) {
+      try {
+        Files.writeString(file, json);
+      } catch (IOException e) {
+        Cinder.LOGGER.warn("[Cinder] Failed to save config", e);
+      }
+    }
   }
 
   public float getSpawnChance(String particleTypeId) {

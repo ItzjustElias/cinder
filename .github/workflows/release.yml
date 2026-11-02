@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags: [ "v*" ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Make wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Tag must match mod_version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          VERSION="$(grep '^mod_version=' gradle.properties | cut -d= -f2)"
+          MC="$(grep '^minecraft_version=' gradle.properties | cut -d= -f2)"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "Tag v$TAG does not match mod_version=$VERSION in gradle.properties"
+            exit 1
+          fi
+          echo "MC_VERSION=$MC" >> "$GITHUB_ENV"
+          echo "MOD_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: ./gradlew buildAll collectJars --stacktrace
+
+      - name: GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/dist/*.jar
+          generate_release_notes: true
+
+      - name: Modrinth and CurseForge (Fabric jar, also tagged for Quilt)
+        if: ${{ vars.MODRINTH_ID != '' || vars.CURSEFORGE_ID != '' }}
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ vars.MODRINTH_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          curseforge-id: ${{ vars.CURSEFORGE_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          files: build/dist/cinder-fabric-*.jar
+          name: Cinder ${{ env.MOD_VERSION }} (Fabric, Minecraft ${{ env.MC_VERSION }})
+          version: ${{ env.MOD_VERSION }}+fabric
+          loaders: |
+            fabric
+            quilt
+          game-versions: ${{ env.MC_VERSION }}
+          java: 25
+
+      - name: Modrinth and CurseForge (NeoForge jar)
+        if: ${{ vars.MODRINTH_ID != '' || vars.CURSEFORGE_ID != '' }}
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ vars.MODRINTH_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          curseforge-id: ${{ vars.CURSEFORGE_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          files: build/dist/cinder-neoforge-*.jar
+          name: Cinder ${{ env.MOD_VERSION }} (NeoForge, Minecraft ${{ env.MC_VERSION }})
+          version: ${{ env.MOD_VERSION }}+neoforge
+          loaders: neoforge
+          game-versions: ${{ env.MC_VERSION }}
+          java: 25
