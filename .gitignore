@@ -40,3 +40,6 @@ replay_*.log
 
 # neoforge dev runs
 runs/
+
+# docs for development for myself
+docs/*
