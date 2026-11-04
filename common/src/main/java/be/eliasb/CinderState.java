@@ -1,7 +1,8 @@
 package be.eliasb;
 
 import be.eliasb.config.CinderConfig;
-import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -23,13 +24,11 @@ public final class CinderState {
   public static int occlusionRaycastsThisTick;
 
   public static double effectiveMaxDistance = 32.0;
-  public static final Long2ByteOpenHashMap OCCLUSION = new Long2ByteOpenHashMap();
-
-  static {
-    OCCLUSION.defaultReturnValue((byte) -1);
-  }
+  public static final Map<OcclusionTarget, Boolean> OCCLUSION = new HashMap<>();
 
   private CinderState() {}
+
+  public record OcclusionTarget(double x, double y, double z) {}
 
   public static void beginTick(Minecraft mc) {
     spawnedThisTick = 0;
