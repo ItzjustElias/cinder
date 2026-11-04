@@ -108,11 +108,11 @@ public final class CinderCulling {
     int bx = Mth.floor(x);
     int by = Mth.floor(y);
     int bz = Mth.floor(z);
-    long key = BlockPos.asLong(bx, by, bz);
+    var key = new CinderState.OcclusionTarget(x, y, z);
 
-    byte cached = CinderState.OCCLUSION.get(key);
-    if (cached >= 0) {
-      return cached == 1;
+    Boolean cached = CinderState.OCCLUSION.get(key);
+    if (cached != null) {
+      return cached;
     }
 
     // Per-tick raycast budget check: fail open if budget exhausted
@@ -124,7 +124,7 @@ public final class CinderCulling {
 
     boolean occluded = raycast(x, y, z, bx, by, bz);
     if (CinderState.cacheHasRoom()) {
-      CinderState.OCCLUSION.put(key, (byte) (occluded ? 1 : 0));
+      CinderState.OCCLUSION.put(key, occluded);
     }
     return occluded;
   }
