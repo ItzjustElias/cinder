@@ -22,6 +22,7 @@ public abstract class ParticleMixin {
   @Shadow protected int lifetime;
 
   @Unique private float cinder$baseAlpha = -1.0F;
+  @Unique private boolean cinder$physicsDisabled;
 
   @Inject(method = "tick", at = @At("HEAD"))
   private void cinder$optimizeAndFade(CallbackInfo ci) {
@@ -37,6 +38,11 @@ public abstract class ParticleMixin {
       }
     }
 
+    if (this.cinder$physicsDisabled) {
+      this.hasPhysics = true;
+      this.cinder$physicsDisabled = false;
+    }
+
     if (cfg.optimizePhysics && this.hasPhysics && CinderState.active) {
       double dx = this.x - CinderState.camX;
       double dy = this.y - CinderState.camY;
@@ -44,6 +50,7 @@ public abstract class ParticleMixin {
       double limit = cfg.physicsDisableDistance;
       if (dx * dx + dy * dy + dz * dz > limit * limit) {
         this.hasPhysics = false;
+        this.cinder$physicsDisabled = true;
       }
     }
   }
