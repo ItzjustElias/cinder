@@ -41,5 +41,6 @@ replay_*.log
 # neoforge dev runs
 runs/
 
-# docs for development for myself
+# docs for development for myself and the wiki on gh
 docs/*
+pages/*
