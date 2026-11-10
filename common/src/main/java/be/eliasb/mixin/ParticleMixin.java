@@ -3,12 +3,14 @@ package be.eliasb.mixin;
 import be.eliasb.CinderState;
 import be.eliasb.config.CinderConfig;
 import net.minecraft.client.particle.Particle;
+import net.minecraft.util.Mth;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Particle.class)
 public abstract class ParticleMixin {
@@ -23,6 +25,45 @@ public abstract class ParticleMixin {
 
   @Unique private float cinder$baseAlpha = -1.0F;
   @Unique private boolean cinder$physicsDisabled;
+  @Unique private boolean cinder$lightCacheValid;
+  @Unique private int cinder$cachedLightAge;
+  @Unique private int cinder$cachedLightX;
+  @Unique private int cinder$cachedLightY;
+  @Unique private int cinder$cachedLightZ;
+  @Unique private int cinder$cachedLightCoords;
+
+  @Inject(method = "getLightCoords", at = @At("HEAD"), cancellable = true)
+  private void cinder$useCachedLightCoords(float partialTick, CallbackInfoReturnable<Integer> cir) {
+    if (!CinderConfig.INSTANCE.cacheLightPerTick) {
+      cinder$lightCacheValid = false;
+      return;
+    }
+
+    int blockX = Mth.floor(this.x);
+    int blockY = Mth.floor(this.y);
+    int blockZ = Mth.floor(this.z);
+    if (cinder$lightCacheValid
+        && cinder$cachedLightAge == this.age
+        && cinder$cachedLightX == blockX
+        && cinder$cachedLightY == blockY
+        && cinder$cachedLightZ == blockZ) {
+      cir.setReturnValue(cinder$cachedLightCoords);
+    }
+  }
+
+  @Inject(method = "getLightCoords", at = @At("RETURN"))
+  private void cinder$storeLightCoords(float partialTick, CallbackInfoReturnable<Integer> cir) {
+    if (!CinderConfig.INSTANCE.cacheLightPerTick) {
+      return;
+    }
+
+    cinder$cachedLightAge = this.age;
+    cinder$cachedLightX = Mth.floor(this.x);
+    cinder$cachedLightY = Mth.floor(this.y);
+    cinder$cachedLightZ = Mth.floor(this.z);
+    cinder$cachedLightCoords = cir.getReturnValue();
+    cinder$lightCacheValid = true;
+  }
 
   @Inject(method = "tick", at = @At("HEAD"))
   private void cinder$optimizeAndFade(CallbackInfo ci) {
