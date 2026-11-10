@@ -1,6 +1,7 @@
 package be.eliasb.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -127,6 +128,15 @@ class CinderConfigTest {
 
     assertNotNull(CinderConfig.INSTANCE.particleTypeOverrides);
     assertNotNull(CinderConfig.INSTANCE.particleTypeNeverCull);
+  }
+
+  @Test
+  void lightCacheCanBeDisabledInTheConfigFile() throws IOException {
+    Files.writeString(file, "{ \"cacheLightPerTick\": false }");
+
+    CinderConfig.load(file);
+
+    assertFalse(CinderConfig.INSTANCE.cacheLightPerTick);
   }
 
   @Test

@@ -28,7 +28,7 @@ Some particles are way more expensive than others. Cinder lets you turn specific
 ### ⚡ Physics and rendering tweaks
 - Particles far away, or just floating in open air with nothing around them, skip collision checks they don't need.
 - Particles fade out smoothly over their last few frames instead of just popping out of existence.
-- Lighting on particles is calculated once per game tick instead of constantly recalculating the same thing over and over on every single frame. This one actually helps even when you're staring straight at a particle, not just when you turn away from it.
+- Particle block-light samples are cached per particle and game tick, avoiding repeated world-light lookups across render frames. Dynamic particle emission is still updated normally. Set `cacheLightPerTick` to `false` in `config/cinder.json` to disable this cache.
 
 ### 📐 Distance that scales with your settings
 Instead of a fixed number, you can set Cinder's particle distance as a percentage of your render distance. Bump up your render distance later and particles automatically reach further too, no need to go tweak the config again.
